@@ -52,14 +52,15 @@ const projects = [
     ],
     tags: ['Python', 'MySQL', 'Apache', 'XAMPP'],
   },
-  
 ];
 
 export default function Projects() {
   const componentRef = useRef(null);
   const sectionRef = useRef(null);
+  const videoRef = useRef(null);
   const modalRef = useRef(null);
   const modalContentRef = useRef(null);
+  const scrollTriggerRef = useRef(null);
 
   const [isClient, setIsClient] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -75,7 +76,7 @@ export default function Projects() {
     }
   }, [selectedProject]);
 
-  // Conditional GSAP Horizontal Scroll Setup (Desktop Only)
+  // Combined GSAP Horizontal Scroll + Video Scrubbing
   useEffect(() => {
     if (!isClient) return;
 
@@ -86,28 +87,45 @@ export default function Projects() {
 
       mm.add('(min-width: 768px)', () => {
         const section = sectionRef.current;
+        const video = videoRef.current;
         if (!section || !componentRef.current) return;
 
-        const cards = section.querySelectorAll('.snap-center');
-        const lastCard = cards[cards.length - 1];
-
-        const lastCardOffset = lastCard 
-          ? (lastCard.offsetLeft + lastCard.offsetWidth / 2) - (window.innerWidth / 2)
-          : section.scrollWidth - window.innerWidth;
+        const getTranslateWidth = () => section.scrollWidth - window.innerWidth;
 
         const animation = gsap.to(section, {
-          x: -lastCardOffset,
+          x: () => -getTranslateWidth(),
           ease: 'none',
           scrollTrigger: {
             trigger: componentRef.current,
             pin: true,
             scrub: 1,
-            end: () => `+=${section.scrollWidth}`,
+            anticipatePin: 1,
+            end: () => `+=${getTranslateWidth()}`,
             invalidateOnRefresh: true,
+            onInit: (self) => {
+              scrollTriggerRef.current = self;
+            },
+            onUpdate: (self) => {
+              // Sync abstract.mp4 currentTime directly with scroll progress
+              if (video && video.duration) {
+                video.currentTime = self.progress * video.duration;
+              }
+            },
           },
         });
 
-        return () => animation.kill();
+        // Card widths are fixed, but lazy-loaded images and web fonts can
+        // still nudge scrollWidth after the initial measurement. Re-measure
+        // once everything has actually settled so the pin distance never
+        // drifts out from under the user mid-scroll.
+        const refresh = () => ScrollTrigger.refresh();
+        window.addEventListener('load', refresh);
+        document.fonts?.ready?.then(refresh);
+
+        return () => {
+          animation.kill();
+          window.removeEventListener('load', refresh);
+        };
       });
     }).catch((err) => {
       console.warn("GSAP ScrollTrigger failed to load:", err);
@@ -116,23 +134,37 @@ export default function Projects() {
     return () => mm.revert();
   }, [isClient]);
 
-  // Modal Animation Handling
+  // Modal Animation Handling & Scroll Lock Cleanup
   useEffect(() => {
-    if (selectedProject && modalRef.current && modalContentRef.current) {
+    if (selectedProject) {
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.disable(false);
+      }
+
       document.body.style.overflow = 'hidden';
-      gsap.fromTo(
-        modalRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.25, ease: 'power2.out' }
-      );
-      gsap.fromTo(
-        modalContentRef.current,
-        { y: 30, opacity: 0, scale: 0.98 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: 'power3.out', delay: 0.05 }
-      );
+
+      if (modalRef.current && modalContentRef.current) {
+        gsap.fromTo(
+          modalRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.25, ease: 'power2.out' }
+        );
+        gsap.fromTo(
+          modalContentRef.current,
+          { y: 30, opacity: 0, scale: 0.98 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: 'power3.out', delay: 0.05 }
+        );
+      }
     } else {
       document.body.style.overflow = '';
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.enable();
+      }
     }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [selectedProject]);
 
   const closeModal = () => {
@@ -148,14 +180,23 @@ export default function Projects() {
         opacity: 0,
         duration: 0.25,
         ease: 'power2.in',
-        onComplete: () => setSelectedProject(null),
+        onComplete: () => {
+          setSelectedProject(null);
+          document.body.style.overflow = '';
+          if (scrollTriggerRef.current) {
+            scrollTriggerRef.current.enable();
+          }
+        },
       });
     } else {
       setSelectedProject(null);
+      document.body.style.overflow = '';
+      if (scrollTriggerRef.current) {
+        scrollTriggerRef.current.enable();
+      }
     }
   };
 
-  // Safe 3D tilt calculation (Disabled for mobile/touch devices)
   const handleMouseMove = (e) => {
     if (window.innerWidth < 768) return;
     const card = e.currentTarget;
@@ -177,18 +218,30 @@ export default function Projects() {
     e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
   };
 
-  if (!isClient) {
-    return <div className="h-screen w-full bg-black" />;
-  }
-
   return (
     <div
       ref={componentRef}
-      className="relative w-full overflow-hidden bg-black text-white min-h-screen py-12 md:py-0"
+      className="relative w-full overflow-hidden bg-black text-white min-h-screen"
     >
+      {/* Scroll-Driven Video Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-40" style={{ contain: 'strict', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+        <video
+          ref={videoRef}
+          src="/abstract.mp4"
+          muted
+          playsInline
+          preload="auto"
+          width="1920"
+          height="1080"
+          className="h-full w-full object-cover"
+          style={{ aspectRatio: '16 / 9', display: 'block' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-black pointer-events-none" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} />
+      </div>
+
       <div
         ref={sectionRef}
-        className="flex flex-col md:flex-row md:h-screen w-full md:w-max items-center gap-8 md:gap-12 px-4 sm:px-8 md:px-20 overflow-x-auto md:overflow-visible snap-x snap-mandatory scrollbar-none"
+        className="relative z-10 flex flex-col md:flex-row md:h-screen w-full md:w-max items-center gap-8 md:gap-12 px-4 sm:px-8 md:px-20 py-12 md:py-0 overflow-x-auto md:overflow-visible snap-x snap-mandatory scrollbar-none"
       >
         {/* Intro Section */}
         <div className="w-full md:w-[380px] flex-shrink-0 md:pr-4 snap-start">
@@ -209,7 +262,6 @@ export default function Projects() {
             <div
               key={project.id}
               onClick={(e) => {
-                // Verify if card is fully within viewport bounds before selecting
                 const rect = e.currentTarget.getBoundingClientRect();
                 const isFullyVisible =
                   rect.left >= 0 && rect.right <= window.innerWidth;
@@ -220,13 +272,18 @@ export default function Projects() {
               }}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="group relative flex flex-col justify-between min-h-[460px] md:min-h-[540px] h-auto w-full sm:w-[340px] md:w-[400px] flex-shrink-0 snap-center overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 p-5 md:p-6 shadow-lg cursor-pointer transition-all duration-200 ease-out hover:border-amber-400/50"
+              className="group relative flex flex-col justify-between min-h-[460px] md:min-h-[540px] h-auto w-full sm:w-[340px] md:w-[400px] flex-shrink-0 snap-center overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/90 p-5 md:p-6 shadow-lg cursor-pointer transition-all duration-200 ease-out hover:border-amber-400/50 backdrop-blur-sm"
             >
               {/* Card Background Image */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
                 <img
                   src={project.image}
                   alt={project.title}
+                  width="400"
+                  height="540"
+                  loading="lazy"
+                  decoding="async"
+                  style={{ aspectRatio: '400 / 540' }}
                   className="h-full w-full object-cover filter brightness-[0.75] transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent" />
@@ -243,7 +300,7 @@ export default function Projects() {
               </div>
 
               {/* Card Content Footer */}
-              <div className="absolute bottom-5 left-5 right-5 md:bottom-6 md:left-6 md:right-6 z-10">
+              <div className="relative z-10 mt-auto pt-12">
                 <span className="text-xs md:text-sm font-bebas font-semibold uppercase tracking-[0.2em] text-amber-400">
                   {project.category}
                 </span>
@@ -271,7 +328,7 @@ export default function Projects() {
         </div>
       </div>
 
-      {/* Adaptive Detail Modal View (Rendered via React Portal) */}
+      {/* Adaptive Detail Modal View */}
       {selectedProject && isClient
         ? createPortal(
             <div
@@ -285,7 +342,6 @@ export default function Projects() {
                 onClick={(e) => e.stopPropagation()}
                 className="relative w-full max-w-3xl max-h-[85vh] my-auto overflow-y-auto rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6 md:p-8 shadow-2xl text-white scrollbar-thin scrollbar-thumb-neutral-700"
               >
-                {/* Sticky Close Icon */}
                 <button
                   onClick={closeModal}
                   className="sticky top-0 float-right z-30 -mr-1 -mt-1 flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors"
@@ -293,7 +349,6 @@ export default function Projects() {
                   ✕
                 </button>
 
-                {/* Modal Header */}
                 <div className="flex items-center gap-2 md:gap-3 pr-8">
                   <span className="text-base md:text-lg font-mono font-bold text-amber-400">
                     {selectedProject.id}
@@ -307,17 +362,19 @@ export default function Projects() {
                   {selectedProject.title}
                 </h2>
 
-                {/* Interactive Image Gallery */}
                 <div className="mt-4 md:mt-6">
                   <div className="h-48 sm:h-60 md:h-80 w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
                     <img
                       src={activeImage}
                       alt={selectedProject.title}
+                      width="800"
+                      height="450"
+                      decoding="async"
+                      style={{ aspectRatio: '800 / 450' }}
                       className="h-full w-full object-cover transition-all duration-300"
                     />
                   </div>
 
-                  {/* Thumbnails list */}
                   {selectedProject.screenshots && selectedProject.screenshots.length > 1 && (
                     <div className="mt-3 flex items-center gap-2.5 overflow-x-auto pb-1">
                       {selectedProject.screenshots.map((img, idx) => (
@@ -328,14 +385,22 @@ export default function Projects() {
                             activeImage === img ? 'border-amber-400 scale-105' : 'border-neutral-800 opacity-60 hover:opacity-100'
                           }`}
                         >
-                          <img src={img} alt={`Screenshot ${idx + 1}`} className="h-full w-full object-cover" />
+                          <img
+                            src={img}
+                            alt={`Screenshot ${idx + 1}`}
+                            width="96"
+                            height="64"
+                            loading="lazy"
+                            decoding="async"
+                            style={{ aspectRatio: '3 / 2' }}
+                            className="h-full w-full object-cover"
+                          />
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* Overview */}
                 <div className="mt-5 md:mt-6">
                   <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
                     System Overview
@@ -345,7 +410,6 @@ export default function Projects() {
                   </p>
                 </div>
 
-                {/* Features */}
                 {selectedProject.features && (
                   <div className="mt-5 md:mt-6">
                     <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
@@ -362,7 +426,6 @@ export default function Projects() {
                   </div>
                 )}
 
-                {/* Tech Stack */}
                 <div className="mt-5 md:mt-6">
                   <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
                     Technologies Used
@@ -379,7 +442,6 @@ export default function Projects() {
                   </div>
                 </div>
 
-                {/* Action Links */}
                 <div className="mt-6 md:mt-8 flex flex-wrap gap-3 md:gap-4 pt-4 border-t border-neutral-800">
                   <a
                     href={selectedProject.githubUrl}
