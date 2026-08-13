@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 
 const projects = [
@@ -16,13 +17,12 @@ const projects = [
     ],
     githubUrl: 'https://github.com',
     liveUrl: null,
-    image: 'src/assets/p1s1.png',
+    image: 'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p1s1.png',
     screenshots: [
-      'src/assets/p1icon.png',
-      'src/assets/project1.png',
-      'src/assets/p1s1.png',
-      'src/assets/p1s2.png',
-      
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p1icon.png',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/Project1.png',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p1s1.png',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p1s2.png',
     ],
     tags: ['Python', 'SQLite', 'PyQt5', 'Desktop GUI'],
   },
@@ -30,7 +30,7 @@ const projects = [
     id: '02',
     title: 'Hamster Pet Shop System',
     category: 'Full Stack Web Development',
-    shortDescription: 'A Python, PHP, and MySQL-powered management system built as a semestral project running locally via XAMPP.',
+    shortDescription: 'A Python, and MySQL-powered management system built as a semestral project running locally via XAMPP.',
     fullDescription: 'The Hamster Pet Shop System is a database-driven application built as a semestral project to manage pet shop operations locally. Hosted using XAMPP (Apache & MySQL) with Python backend integration, it provides centralized management for hamster supplies, customer transactions, automated inventory tracking, and sales reporting in a local environment.',
     features: [
       'Interactive product catalog with automated inventory updates',
@@ -41,55 +41,18 @@ const projects = [
     ],
     githubUrl: 'https://github.com/hrvycstddcll/HamsterPetShop',
     liveUrl: null,
-    image: 'src/assets/project2.png',
+    image: 'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p2s2.png',
     screenshots: [
-      'src/assets/project2.png',
-      'https://images.unsplash.com/photo-1425082661705-1834bfd09dca?auto=format&fit=crop&q=80&w=1000',
-      'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&q=80&w=1000'
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p2icon.jpg',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p2s1.png',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p2s2.png',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p2s3.png',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p2s4.png',
+      'https://raw.githubusercontent.com/hrvycstddcll/Portfolio-Website-v1/main/src/assets/p2s5.png'
     ],
-    tags: ['Python', 'PHP', 'MySQL', 'Apache', 'XAMPP'],
+    tags: ['Python', 'MySQL', 'Apache', 'XAMPP'],
   },
-  {
-    id: '03',
-    title: '3D Portfolio Concept',
-    category: 'Creative Web Design',
-    shortDescription: 'Interactive WebGL experience featuring procedural shaders and custom physics.',
-    fullDescription: 'A high-performance experimental web portfolio showcasing 3D spatial UI design. Built using Three.js and custom GLSL shaders, it delivers an immersive interactive world without compromising load times.',
-    features: [
-      'Custom procedural GLSL vertex & fragment shaders',
-      'Physics-based camera controls and particle simulations',
-      'Responsive canvas scaling across mobile and desktop',
-      'Optimized asset loading pipeline'
-    ],
-    githubUrl: 'https://github.com',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000',
-    screenshots: [
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000',
-      'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&q=80&w=1000'
-    ],
-    tags: ['Three.js', 'GSAP', 'React Three Fiber', 'GLSL'],
-  },
-  {
-    id: '04',
-    title: 'Mobile Banking App',
-    category: 'Fintech Application',
-    shortDescription: 'Cross-platform mobile wallet built with security-first architecture.',
-    fullDescription: 'A modern mobile banking interface focused on speed, clarity, and biometric security. Includes instant peer-to-peer transfers, budget category tracking, and encrypted transaction histories.',
-    features: [
-      'Biometric authentication (FaceID / Fingerprint)',
-      'End-to-end transaction data encryption',
-      'Real-time balance updates and push notifications',
-      'Interactive expense categorization analytics'
-    ],
-    githubUrl: 'https://github.com',
-    liveUrl: 'https://example.com',
-    image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=1000',
-    screenshots: [
-      'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=1000',
-      'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&q=80&w=1000'
-    ],
-    tags: ['React Native', 'Node.js', 'PostgreSQL', 'Tailwind'],
-  },
+  
 ];
 
 export default function Projects() {
@@ -116,7 +79,6 @@ export default function Projects() {
   useEffect(() => {
     if (!isClient) return;
 
-    // Use MatchMedia to apply GSAP Pinning only on Desktop (≥768px)
     const mm = gsap.matchMedia();
 
     import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
@@ -126,10 +88,15 @@ export default function Projects() {
         const section = sectionRef.current;
         if (!section || !componentRef.current) return;
 
-        const totalWidth = section.scrollWidth - window.innerWidth ;
+        const cards = section.querySelectorAll('.snap-center');
+        const lastCard = cards[cards.length - 1];
+
+        const lastCardOffset = lastCard 
+          ? (lastCard.offsetLeft + lastCard.offsetWidth / 2) - (window.innerWidth / 2)
+          : section.scrollWidth - window.innerWidth;
 
         const animation = gsap.to(section, {
-          x: -totalWidth,
+          x: -lastCardOffset,
           ease: 'none',
           scrollTrigger: {
             trigger: componentRef.current,
@@ -241,10 +208,19 @@ export default function Projects() {
           {projects.map((project) => (
             <div
               key={project.id}
-              onClick={() => setSelectedProject(project)}
+              onClick={(e) => {
+                // Verify if card is fully within viewport bounds before selecting
+                const rect = e.currentTarget.getBoundingClientRect();
+                const isFullyVisible =
+                  rect.left >= 0 && rect.right <= window.innerWidth;
+
+                if (isFullyVisible || window.innerWidth < 768) {
+                  setSelectedProject(project);
+                }
+              }}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="group relative h-[420px] w-[280px] sm:w-[340px] md:h-[520px] md:w-[400px] flex-shrink-0 snap-center overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 p-5 md:p-6 shadow-lg cursor-pointer transition-all duration-200 ease-out hover:border-amber-400/50"
+              className="group relative flex flex-col justify-between min-h-[460px] md:min-h-[540px] h-auto w-full sm:w-[340px] md:w-[400px] flex-shrink-0 snap-center overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 p-5 md:p-6 shadow-lg cursor-pointer transition-all duration-200 ease-out hover:border-amber-400/50"
             >
               {/* Card Background Image */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
@@ -295,129 +271,133 @@ export default function Projects() {
         </div>
       </div>
 
-      {/* Adaptive Detail Modal View */}
-      {selectedProject && (
-        <div
-          ref={modalRef}
-          onClick={closeModal}
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/85 p-0 sm:p-4 md:p-8 backdrop-blur-md mt-10"
-        >
-          <div
-            ref={modalContentRef}
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-3xl max-h-[90vh] md:max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6 md:p-8 shadow-2xl text-white scrollbar-thin scrollbar-thumb-neutral-700"
-          >
-            {/* Sticky Close Icon */}
-            <button
+      {/* Adaptive Detail Modal View (Rendered via React Portal) */}
+      {selectedProject && isClient
+        ? createPortal(
+            <div
+              ref={modalRef}
               onClick={closeModal}
-              className="sticky top-0 float-right z-30 -mr-1 -mt-1 flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors"
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 p-4 md:p-8 backdrop-blur-md overflow-y-auto"
+              style={{ touchAction: 'pan-y' }}
             >
-              ✕
-            </button>
-
-            {/* Modal Header */}
-            <div className="flex items-center gap-2 md:gap-3 pr-8">
-              <span className="text-base md:text-lg font-mono font-bold text-amber-400">
-                {selectedProject.id}
-              </span>
-              <span className="text-xs md:text-sm font-bebas font-semibold uppercase tracking-[0.2em] text-amber-400">
-                {selectedProject.category}
-              </span>
-            </div>
-
-            <h2 className="mt-1 text-xl sm:text-2xl md:text-4xl font-bold font-inter text-white pr-8">
-              {selectedProject.title}
-            </h2>
-
-            {/* Interactive Image Gallery */}
-            <div className="mt-4 md:mt-6">
-              <div className="h-48 sm:h-60 md:h-80 w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
-                <img
-                  src={activeImage}
-                  alt={selectedProject.title}
-                  className="h-full w-full object-cover transition-all duration-300"
-                />
-              </div>
-
-              {/* Thumbnails list */}
-              {selectedProject.screenshots && selectedProject.screenshots.length > 1 && (
-                <div className="mt-3 flex items-center gap-2.5 overflow-x-auto pb-1">
-                  {selectedProject.screenshots.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImage(img)}
-                      className={`relative h-12 w-20 sm:h-16 sm:w-24 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
-                        activeImage === img ? 'border-amber-400 scale-105' : 'border-neutral-800 opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={img} alt={`Screenshot ${idx + 1}`} className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Overview */}
-            <div className="mt-5 md:mt-6">
-              <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
-                System Overview
-              </h3>
-              <p className="mt-1.5 md:mt-2 text-xs sm:text-sm md:text-base font-inter text-neutral-300 leading-relaxed">
-                {selectedProject.fullDescription}
-              </p>
-            </div>
-
-            {/* Features */}
-            {selectedProject.features && (
-              <div className="mt-5 md:mt-6">
-                <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
-                  Key Capabilities
-                </h3>
-                <ul className="mt-2 md:mt-3 space-y-1.5 md:space-y-2">
-                  {selectedProject.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm font-inter text-neutral-300">
-                      <span className="text-amber-400 font-mono mt-0.5">•</span>
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Tech Stack */}
-            <div className="mt-5 md:mt-6">
-              <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
-                Technologies Used
-              </h3>
-              <div className="mt-2 md:mt-3 flex flex-wrap gap-1.5 md:gap-2">
-                {selectedProject.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-md font-mono bg-neutral-800 px-2.5 py-1 text-[11px] md:text-xs text-neutral-200 border border-neutral-700/60"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Links */}
-            <div className="mt-6 md:mt-8 flex flex-wrap gap-3 md:gap-4 pt-4 border-t border-neutral-800">
-              <a
-                href={selectedProject.githubUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 rounded-lg bg-neutral-800 px-3.5 md:px-4 py-2 md:py-2.5 text-xs md:text-sm font-mono font-medium text-white hover:bg-neutral-700 transition-colors"
+              <div
+                ref={modalContentRef}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-3xl max-h-[85vh] my-auto overflow-y-auto rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6 md:p-8 shadow-2xl text-white scrollbar-thin scrollbar-thumb-neutral-700"
               >
-                <svg className="w-3.5 h-3.5 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                </svg>
-                Source Code
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+                {/* Sticky Close Icon */}
+                <button
+                  onClick={closeModal}
+                  className="sticky top-0 float-right z-30 -mr-1 -mt-1 flex h-8 w-8 md:h-9 md:w-9 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+
+                {/* Modal Header */}
+                <div className="flex items-center gap-2 md:gap-3 pr-8">
+                  <span className="text-base md:text-lg font-mono font-bold text-amber-400">
+                    {selectedProject.id}
+                  </span>
+                  <span className="text-xs md:text-sm font-bebas font-semibold uppercase tracking-[0.2em] text-amber-400">
+                    {selectedProject.category}
+                  </span>
+                </div>
+
+                <h2 className="mt-1 text-xl sm:text-2xl md:text-4xl font-bold font-inter text-white pr-8">
+                  {selectedProject.title}
+                </h2>
+
+                {/* Interactive Image Gallery */}
+                <div className="mt-4 md:mt-6">
+                  <div className="h-48 sm:h-60 md:h-80 w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950">
+                    <img
+                      src={activeImage}
+                      alt={selectedProject.title}
+                      className="h-full w-full object-cover transition-all duration-300"
+                    />
+                  </div>
+
+                  {/* Thumbnails list */}
+                  {selectedProject.screenshots && selectedProject.screenshots.length > 1 && (
+                    <div className="mt-3 flex items-center gap-2.5 overflow-x-auto pb-1">
+                      {selectedProject.screenshots.map((img, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setActiveImage(img)}
+                          className={`relative h-12 w-20 sm:h-16 sm:w-24 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                            activeImage === img ? 'border-amber-400 scale-105' : 'border-neutral-800 opacity-60 hover:opacity-100'
+                          }`}
+                        >
+                          <img src={img} alt={`Screenshot ${idx + 1}`} className="h-full w-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Overview */}
+                <div className="mt-5 md:mt-6">
+                  <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
+                    System Overview
+                  </h3>
+                  <p className="mt-1.5 md:mt-2 text-xs sm:text-sm md:text-base font-inter text-neutral-300 leading-relaxed">
+                    {selectedProject.fullDescription}
+                  </p>
+                </div>
+
+                {/* Features */}
+                {selectedProject.features && (
+                  <div className="mt-5 md:mt-6">
+                    <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
+                      Key Capabilities
+                    </h3>
+                    <ul className="mt-2 md:mt-3 space-y-1.5 md:space-y-2">
+                      {selectedProject.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm font-inter text-neutral-300">
+                          <span className="text-amber-400 font-mono mt-0.5">•</span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Tech Stack */}
+                <div className="mt-5 md:mt-6">
+                  <h3 className="text-[10px] md:text-xs font-mono uppercase tracking-wider text-neutral-400">
+                    Technologies Used
+                  </h3>
+                  <div className="mt-2 md:mt-3 flex flex-wrap gap-1.5 md:gap-2">
+                    {selectedProject.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-md font-mono bg-neutral-800 px-2.5 py-1 text-[11px] md:text-xs text-neutral-200 border border-neutral-700/60"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action Links */}
+                <div className="mt-6 md:mt-8 flex flex-wrap gap-3 md:gap-4 pt-4 border-t border-neutral-800">
+                  <a
+                    href={selectedProject.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-neutral-800 px-3.5 md:px-4 py-2 md:py-2.5 text-xs md:text-sm font-mono font-medium text-white hover:bg-neutral-700 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                    Source Code
+                  </a>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
