@@ -132,6 +132,10 @@ export default function Hero() {
           <img 
             src="/harveybg.png" 
             alt="Harvey" 
+            width="600"
+            height="800"
+            fetchPriority="high"
+            decoding="async"
             className="absolute bottom-0 right-0 z-20 max-h-full max-w-full object-contain object-bottom-right 
             sm:scale-130 sm:-translate-x-20 md:scale-150 md:-translate-x-20
             mask-[linear-gradient(to_bottom,black_75%,transparent)]

@@ -91,11 +91,11 @@ export default function Navbar() {
           <div className="flex justify-between items-center px-8">
 
             <div className="flex justify-center items-center">
-              <img src="icon.svg" alt="logo" className="h-15 w-auto"/>
+              <img src="icon.svg" alt="logo" width="60" height="60" className="h-15 w-auto"/>
             </div>
             <ul className="hidden md:flex justify-center items-center gap-12">
               {navLinks.map((link) => (
-                <li key={link.name} className="desk-link flex text-xs lg:text-lg tracking-tight space-x-2"
+                <li key={link.name} className="desk-link flex text-xs lg:text-lg tracking-tight space-x-2 select-none"
                 onMouseEnter={rollEnter}
                 onMouseLeave={rollLeave}
                 >
